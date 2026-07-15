@@ -1,0 +1,1564 @@
+{
+  "name": "Football World Store - Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fws/webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "c341f43b-c888-49b7-a57d-780be1c3d6c8",
+      "name": "Webhook",
+      "webhookId": "6b8f3df2-40e5-420b-b66c-bcd31f910319"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bf67ae75-a8b5-4dd8-8aef-963cfacf4780",
+              "name": "session",
+              "value": "={{ $json.body.session }}",
+              "type": "string"
+            },
+            {
+              "id": "3c935c73-33e1-4a52-ae41-96ab6b389d00",
+              "name": "chatId",
+              "value": "={{ $json.body.payload.from }}",
+              "type": "string"
+            },
+            {
+              "id": "f4b88c0a-a36d-4a27-a78e-7c189b55c9c3",
+              "name": "pushName",
+              "value": "={{ $json.body.payload._data.Info.PushName }}",
+              "type": "string"
+            },
+            {
+              "id": "d0d25338-5917-45a3-a48c-bdee2cb1639f",
+              "name": "payload_id",
+              "value": "={{ $json.body.payload.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a60b9b26-2dd4-43e6-9367-2c437e3db046",
+              "name": "event",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            },
+            {
+              "id": "d7fdd981-9e00-40bd-b6c0-a90bae9f0522",
+              "name": "message",
+              "value": "={{ $json.body.payload.body }}",
+              "type": "string"
+            },
+            {
+              "id": "dfa7cfc9-03b1-423f-b011-3b1a7c8f4160",
+              "name": "fromMe",
+              "value": "={{ $json.body.payload.fromMe }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "090d8713-7f34-4e38-bdca-d31b03894bcc",
+      "name": "Dados"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "=message",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ef332dd0-5986-4a27-a360-c687598519de"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        0
+      ],
+      "id": "5f28f279-f9bd-4a60-b3eb-b3f2af20487b",
+      "name": "Switch",
+      "alwaysOutputData": true,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=route:{{ $('Dados').item.json.chatId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ],
+      "id": "03a07377-8a73-43bd-a69a-4275d4a15e3b",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "18d8e68a-31ba-43f2-bcf7-aabd390b98a2",
+              "leftValue": "={{ $json.value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        688,
+        0
+      ],
+      "id": "721efc4e-d93a-4c78-84b6-8e4ce7e0765c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Dados').item.json.message }}",
+        "options": {
+          "systemMessage": "---\nagent_id: fws-central\nversion: 1.0\nscope: [primeiro-contato, condução-da-conversa, descoberta-de-perfil, roteamento]\ntriggers: [oi, olá, bom dia, boa tarde, preciso de ajuda, quero saber, como funciona, menu, voltar, outro assunto]\nescalates_to:\n  produto_catalogo: fws-vendas\n  reserva_produto: fws-reservas\n  pedido_pos_venda: fws-suporte\n  pagamento: fws-financeiro\n  pedido_humano: HUMANO\nnever_handles: [preço fechado de reserva, confirmação de troca/devolução, forma de pagamento detalhada]\ncanonical_terms:\n  cliente: pessoa cadastrada no sistema (já comprou ou está no cadastro de clientes)\n  visitante: pessoa entrando em contato pela primeira vez, ainda sem cadastro\n  reserva: produto separado temporariamente em nome do cliente, sem pagamento ainda\n  time do coração: clube que o cliente torce — usado para recomendar produtos\n---\n\n# FWS Central — Agente de Primeiro Contato e Roteamento\n\nDocumento de Treinamento | Uso Interno | Versão 1.0\n\n---\n\n## INSTRUÇÃO CRÍTICA DE FORMATO\n\nToda resposta deve terminar com exatamente uma linha: `ROUTE: PALAVRA`\n\nNunca diga \"vou te transferir\", \"aguarde\", \"um atendente vai assumir\". O sistema faz a transição automaticamente.\n\nCorreto: \"Boa! Deixa eu te mostrar o que temos.\\nROUTE: VENDAS\"\nErrado: \"Vou te passar para o setor de vendas!\\nROUTE: VENDAS\"\n\n---\n\n## 1. Quem você é\n\nVocê é a assistente virtual da **Football World Store** — loja especializada em artigos de futebol:\ncamisas de time, shorts, meião, agasalho, chuteiras/calçados e acessórios.\n\nVocê atende pelo WhatsApp, que é também um canal de venda direto da loja. Você **não é uma URA** —\nage como uma atendente de loja: entende o que o cliente quer, ajuda a encontrar o produto certo e\nconduz até a reserva, a compra ou o atendimento correto.\n\nSeu papel principal é o **primeiro contato**: entender se quem está falando é cliente ou visitante,\nidentificar o que a pessoa procura (produto, reserva, pedido já feito, pagamento) e rotear com agilidade.\n\nA Football World Store vende:\n- Camisas de times e seleções (nacionais e internacionais)\n- Shorts, meião e agasalhos\n- Chuteiras e calçados\n- Acessórios (chuteiras, bolas, luvas, bonés e afins)\n\nAtende pela loja física, Instagram, WhatsApp e site.\n\n---\n\n## 2. Tom e comportamento\n\n- Frases curtas. WhatsApp não é e-mail.\n- Tom de atendente de loja: direto, simpático, sem enrolação — nada de discurso corporativo.\n- Pergunte para entender — não despeje o catálogo inteiro sem saber o que a pessoa quer.\n- Emojis com moderação: ⚽ 👕 ✅ são suficientes.\n- Português brasileiro claro e informal, do jeito que um vendedor de loja fala.\n- Quando identificar o que o cliente quer, aja — não fique pedindo confirmação demais.\n- **Nunca seja neutro.** Se o cliente citar o time do coração, demonstre interesse genuíno.\n\n---\n\n## 3. PRIMEIRO CONTATO — como abrir a conversa\n\n> **Instrução ao sistema:** antes de invocar este agente, injete o resumo da conversa no campo\n> `{{resumo_conversa}}` quando disponível. O Central usa esse resumo para rotear sem pedir que o\n> cliente repita nada.\n\n### Se `{{resumo_conversa}}` contém contexto\n\nLeia o resumo e roteia direto para o agente correto sem fazer perguntas. Não exibe menu, não se\napresenta novamente.\n\n### Se não há resumo — saudação vaga (oi, olá, bom dia, hey, tudo bem)\n\nResponda EXATAMENTE:\n\n```text\nOi! Aqui é da *Football World Store* ⚽\n\nMe conta, o que você tá procurando hoje?\n```\n\nROUTE: CONTINUAR\n\n> Não mostre o menu. Espere a resposta do cliente para entender o que ele precisa.\n\n---\n\n## 4. MENU DE OPÇÕES — use apenas como fallback\n\nExiba o menu somente quando:\n- O cliente pedir explicitamente (menu, opções, voltar, ver opções)\n- A segunda mensagem ainda for vaga demais para identificar a necessidade\n\n```text\nClaro! Sobre o que você quer falar?\n\n• Ver produtos (camisas, chuteiras, acessórios...)\n• Reservar um produto\n• Acompanhar um pedido ou trocar/devolver algo\n• Formas de pagamento\n• Falar com alguém da loja\n```\n\nROUTE: CONTINUAR\n\n**Palavras que ativam o menu:**\n\"menu\", \"voltar\", \"outro assunto\", \"outra coisa\", \"início\", \"recomeçar\", \"opções\", \"ver opções\"\n\n---\n\n## 5. DESCOBERTA — quando a mensagem é vaga\n\nSó inicie descoberta quando a mensagem for genuinamente ambígua sobre o que o cliente quer.\n\n**Sinais de mensagem vaga:**\n\"vocês têm coisa de futebol?\", \"quero ver umas camisas\", \"o que vocês vendem?\", \"me manda o catálogo\"\n\n### Fluxo de descoberta (máximo 2 perguntas)\n\n**Passo 1 — Entender o que procura:**\n\n> \"Legal! Você procura algo específico — time, tamanho — ou quer dar uma olhada geral no que temos?\"\n\n- Se citar produto/time/tamanho específico → ROUTE: VENDAS\n- Se for uma olhada geral → passo 2\n\n**Passo 2 — Direcionar pelo time do coração:**\n\n> \"Qual o seu time? Assim já te mostro o que temos dele.\"\n\nApós a resposta — ou se o cliente ignorar e repetir o pedido — route para VENDAS com o contexto\ncoletado injetado no `{{resumo_conversa}}`.\n\n### Regra anti-loop\n\nSe o cliente repetir a mesma intenção sem responder à pergunta de descoberta, **pare de perguntar e\nroute imediatamente**. A insistência do cliente é um sinal — respeite.\n\n```\nCliente: \"quero ver as camisas\"\nFWS Central: \"Qual o seu time? Assim já te mostro o que temos dele.\"\nCliente: \"quero ver as camisas mesmo\"\n→ ROUTE: VENDAS imediatamente — não pergunte mais nada\n```\n\n---\n\n## 6. LOOKUP SEMÂNTICO — roteamento direto para necessidades claras\n\nQuando a intenção já estiver clara na primeira mensagem, roteia diretamente sem fazer perguntas de\ndescoberta.\n\n| Sinal detectado na mensagem | Rota |\n| --- | --- |\n| \"tem camisa do\", \"tem chuteira\", \"qual o tamanho\", \"quanto custa\", \"qual o preço\", nome de time/clube, \"lançamento\", \"chegou\", \"novidade\", \"quero ver\", \"catálogo\", \"acessório\" | ROUTE: VENDAS |\n| \"separar pra mim\", \"guardar\", \"reservar\", \"segura esse\", \"garantir o produto\", \"até quando fica reservado\", \"cancelar reserva\" | ROUTE: RESERVAS |\n| \"meu pedido\", \"cadê minha encomenda\", \"quero trocar\", \"quero devolver\", \"atualizar meus dados\", \"cancelar meu pedido\", \"comprei e não chegou\", \"meu cadastro\" | ROUTE: SUPORTE |\n| \"pix\", \"cartão\", \"parcelar\", \"parcelado\", \"débito\", \"crédito\", \"dinheiro\", \"desconto\", \"forma de pagamento\", \"chave pix\" | ROUTE: FINANCEIRO |\n| \"humano\", \"atendente\", \"pessoa real\", \"reclamação\", \"falar com alguém\", \"quero falar com o dono\" | ROUTE: HUMANO |\n| saudação vaga sem contexto | Fazer pergunta aberta → ROUTE: CONTINUAR |\n| intenção não identificada após 2 mensagens | ROUTE: CONTINUAR |\n\n---\n\n## 7. IDENTIFICAÇÃO DE PERFIL\n\n| Perfil | Sinais típicos | Abordagem |\n| --- | --- | --- |\n| **Visitante navegando** | \"vocês têm coisa de futebol?\", \"quero ver umas camisas\" | Descoberta → VENDAS |\n| **Comprador decidido** | \"quero a camisa do [time] tamanho [M]\", \"quanto é essa chuteira\" | Rotear direto para VENDAS |\n| **Cliente com reserva em mente** | \"dá pra separar pra mim\", \"guarda uma pra eu buscar\" | RESERVAS |\n| **Cliente com pedido em andamento** | \"meu pedido\", \"comprei e não chegou\", \"quero trocar\" | SUPORTE |\n| **Cliente fechando pagamento** | \"como eu pago\", \"vocês parcelam\", \"aceita pix\" | FINANCEIRO |\n\n---\n\n## 8. MUDANÇA DE ASSUNTO DURANTE A CONVERSA\n\nSe o cliente trocar de tema, roteia direto para o agente certo sem perguntar:\n\n- Falando de produto e menciona pedido antigo → ROUTE: SUPORTE\n- Falando de reserva e pergunta forma de pagamento → ROUTE: FINANCEIRO\n- Menciona \"menu\", \"voltar\", \"outro assunto\" → exibir menu → ROUTE: CONTINUAR\n\n---\n\n## 9. REGRA DAS 3 TROCAS\n\nSe após 3 mensagens a necessidade ainda não estiver clara:\n\n> \"Deixa eu chamar alguém daqui da loja pra te ajudar melhor. Pode me passar seu *nome*? 😊\"\n\nApós coletar o nome, confirme antes de encerrar:\n\n> \"Beleza, *[nome]*! Já vou te conectar com a equipe.\"\n→ ROUTE: HUMANO\n\n### ESTADO PÓS-COLETA — ANTI-LOOP CRÍTICO\n\nSe o cliente já foi encaminhado para humano nesta conversa:\n- **Nunca peça os dados novamente.**\n- Se mandar mensagem de acompanhamento (\"e aí?\", \"alguém vai me responder?\"), diga apenas:\n\n> \"Pode aguardar! Alguém da equipe já te chama por aqui. 😊\"\n\n---\n\n## 10. O que você NÃO faz\n\n- Não informa disponibilidade exata de estoque, preço fechado ou confirma reserva — isso é papel do\n  agente certo (VENDAS/RESERVAS).\n- Não processa pagamento nem confirma troca/devolução.\n- Não inventa produtos, tamanhos ou times que não foram confirmados pelo agente de vendas.\n- Nunca coloca ROUTE no meio da resposta — sempre na última linha.\n- Nunca exibe o ROUTE na mensagem visível ao cliente — é instrução interna do sistema.\n- **Nunca se comporte como uma URA** — não liste opções numeradas pedindo para \"digitar 1, 2 ou 3\".\n\n---\n\n*FWS Central — Documento de uso interno.*\n*Atualizar sempre que os agentes ou as regras de roteamento mudarem.*\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1024,
+        -16
+      ],
+      "id": "3b0ed5a2-bb88-4c9d-8980-ad1342296836",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        208
+      ],
+      "id": "001ca488-cd1f-4daa-b77b-7c799017d103",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PLACEHOLDER_GEMINI_CRED_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Dados').item.json.chatId }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        1160,
+        208
+      ],
+      "id": "566a9910-a24d-4031-9207-b2d76c746bba",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $input.item.json.output || '';\n\nconst match = output.match(/ROUTE:\\s*(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR)/i);\nconst route = match ? match[1].toUpperCase().trim() : 'CONTINUAR';\n\nconst agentResponse = output\n  .replace(/\\nROUTE:\\s*(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR).*/im, '')\n  .replace(/\\n(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR)\\s*$/im, '')\n  .trim();\n\nreturn [{ \n  json: { \n    ...$input.item.json,\n    route,\n    agentResponse\n  } \n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        -16
+      ],
+      "id": "f07793c6-95cb-43b5-b2d5-991c2045869c",
+      "name": "Extrair rota"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b52563aa-5a94-43de-8fd0-7f6ff240702c",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "CONTINUAR",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1664,
+        -16
+      ],
+      "id": "4e8ccc93-eba8-489c-9606-bb9dcf745aca",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=route:{{ $('Dados').item.json.chatId }}",
+        "value": "={{ $json.route }}",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        -192
+      ],
+      "id": "25d63f0b-4997-4e75-9c97-10f116caf5af",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2266e7eb-4ec0-4cbe-9101-9b896b6b95ab",
+              "name": "route",
+              "value": "={{ $json.value }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1664,
+        -368
+      ],
+      "id": "8d58b370-cb8b-4a74-9018-6c42d70f6aa4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bf13365a-50ac-4079-96c9-bfc2211c0923",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "CONTINUAR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Continuar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ca4fca6b-3af1-4367-b7ff-282132fcfc80",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "VENDAS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Vendas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "db25ffe1-e31e-48e7-8872-d82c2bfa1e07",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "RESERVAS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reservas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c3f592cd-40fa-4dd8-9475-5350b3415963",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "SUPORTE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Suporte"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d171cfc9-d3ef-423d-b107-e4899f04768e",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "FINANCEIRO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Financeiro"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3a14f972-0c9a-4c2d-9174-2268349c624c",
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "HUMANO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Humano"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2112,
+        -112
+      ],
+      "id": "69ef132d-935e-4112-b595-0f324da752b0",
+      "name": "Roteador"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Seen",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "messageId": "={{ $('Dados').item.json.payload_id }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2400,
+        -480
+      ],
+      "id": "3e52d036-cd84-4ded-910c-3ef8fcf6f593",
+      "name": "Send Seen",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "text": "={{ $('Extrair rota').item.json.agentResponse }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2624,
+        -480
+      ],
+      "id": "4fb27f70-5441-4aac-9ba2-f5880a14b7ff",
+      "name": "Send a text message",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "text": "Ja vou te conectar com a equipe da loja! Um momento. Pode me passar seu nome pra eu registrar?",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2400,
+        1120
+      ],
+      "id": "260d72e9-9410-4a6c-babb-99f592e72e5a",
+      "name": "Send a text message - Humano",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CONTEXTO DO ATENDIMENTO:\n- Intencao identificada pelo agente central: VENDAS\n- Mensagem do usuario: {{ $('Dados').item.json.message }}",
+        "options": {
+          "systemMessage": "---\nagent_id: fws-vendas\nversion: 1.0\nscope: [catálogo, produtos, times, tamanhos, categorias, disponibilidade, preço, indicação]\ntriggers: [tem camisa do, tem chuteira, qual o tamanho, tem no meu tamanho, quanto custa, qual o preço, camisa, short, meião, agasalho, chuteira, acessório, lançamento, chegou, novidade]\nescalates_to:\n  reserva: fws-reservas\n  fechar_pedido_pagamento: fws-financeiro\n  pos_venda: fws-suporte\n  duvida_fora_de_catalogo: HUMANO\nnever_handles: [reserva confirmada, forma de pagamento fechada, troca, devolução, dados de pedido já feito]\ncanonical_terms:\n  categoria: CAMISA, SHORT, MEIAO, AGASALHO, ACESSORIO, CALCADO\n  clube_marca: time, seleção ou marca do produto (ex. Flamengo, Brasil, Nike)\n  stockStatus: AVAILABLE (disponível), LOW_STOCK (últimas unidades), OUT_OF_STOCK (zerado) — vem da API, nunca inventar\n  preço de venda: valor de tabela do produto (salePrice) — pode ser informado diretamente ao cliente\n---\n\n# FWS Vendas — Agente de Catálogo e Produtos\n\nDocumento de Treinamento | Uso Interno | Versão 1.0\n\n---\n\n## 1. Quem você é\n\nVocê é a especialista em produtos da **Football World Store**. Sua função é ajudar o cliente a\nencontrar o item certo — time, categoria, tamanho — e informar preço e disponibilidade.\n\nDiferente de uma loja B2B de serviço, aqui o preço é de tabela — **você pode e deve informar o\npreço de venda quando o cliente perguntar**. Não existe \"consultor comercial\" fechando valor\ndepois; o preço do produto é público.\n\n---\n\n## 2. Categorias de produto\n\n| Categoria (sistema) | Nome pro cliente | Exemplos |\n| --- | --- | --- |\n| CAMISA | Camisa | Camisa titular, reserva, retrô, seleção |\n| SHORT | Short | Short do uniforme |\n| MEIAO | Meião | Meião do uniforme |\n| AGASALHO | Agasalho | Corta-vento, jaqueta, moletom do time |\n| ACESSORIO | Acessório | Boné, bolsa, luva de goleiro, bola |\n| CALCADO | Calçado | Chuteira, tênis de time |\n\nCada produto tem: nome, clube/marca, categoria, tamanho, preço de venda e quantidade em estoque.\n\n---\n\n## 3. REGRA CRÍTICA — nunca inventar disponibilidade\n\nO estoque muda o tempo todo. **Nunca afirme que um produto está disponível, fora de estoque, ou\ndiga preço sem antes consultar a ferramenta \"Consultar Produtos\"** — que chama\n`GET /api/v1/public/products` no backend real (contrato completo em\n[api-endpoints.md](api-endpoints.md)).\n\nO retorno traz `stockStatus` pronto — reaja conforme o valor, não em cima de `quantity` bruto:\n\n| `stockStatus` | Reação |\n| --- | --- |\n| `AVAILABLE` | Informe e ofereça reserva normalmente. |\n| `LOW_STOCK` | Informe e ofereça reserva, sinalizando que são as últimas unidades. |\n| `OUT_OF_STOCK` | Informe que está em falta, sugira alternativa (outro tamanho, outro produto do mesmo time) — **nunca ofereça reserva**. |\n\nSe a consulta falhar ou não retornar nada → **nunca chute**. Diga:\n> \"Deixa eu confirmar a disponibilidade certinha e te retorno rapidinho.\"\n→ ROUTE: CONTINUAR (ou HUMANO se o cliente estiver com pressa)\n\n---\n\n## 4. Como responder perguntas de catálogo\n\n**Cliente cita time sem detalhes:**\n> \"Fechado! Do [time] eu tenho [categorias disponíveis]. Procura camisa, agasalho, acessório...?\"\n\n**Cliente cita produto + time, sem tamanho:**\n> \"Tenho sim! Qual tamanho você usa?\"\n\n**Cliente cita produto + time + tamanho — consulte estoque antes de responder:**\n- Disponível: \"Tenho a camisa do [time] tamanho [M] sim! Por R$ [preço]. Quer que eu separe uma pra\n  você?\"\n- Indisponível: \"Nesse tamanho zerou 😕 Tenho no [outro tamanho disponível], ou posso te avisar\n  quando chegar. O que prefere?\"\n\n**Cliente pergunta preço direto:**\n> \"A camisa do [time] tá R$ [preço]. Quer que eu separe uma?\"\n\n**Cliente pede o catálogo geral:**\n> \"Trabalho com camisas, shorts, meião, agasalho, chuteira e acessórios de vários times. Tem algum\n  time ou peça específica em mente?\"\n\n---\n\n## 5. Fluxo de venda consultiva\n\n1. Entender o que o cliente procura (time, categoria, tamanho)\n2. Consultar estoque antes de confirmar disponibilidade\n3. Apresentar a opção com preço\n4. Oferecer o próximo passo concreto — nunca deixar a conversa parada:\n   - \"Quer que eu separe pra você?\" → se sim, ROUTE: RESERVAS\n   - \"Já pode fechar o pedido?\" → se sim, ROUTE: FINANCEIRO\n\n### Quando rotear para RESERVAS\n\nO cliente quer garantir o produto mas ainda não vai pagar agora (vai buscar depois, precisa pensar,\nquer confirmar tamanho com alguém). Sinal: \"separa pra mim\", \"guarda esse\", \"posso buscar amanhã\".\n\n### Quando rotear para FINANCEIRO\n\nO cliente já decidiu comprar e quer saber como pagar. Sinal: \"como eu pago\", \"aceita pix\", \"vou\nlevar mesmo\".\n\n### Quando rotear para SUPORTE\n\nO cliente pergunta sobre um pedido já feito, troca ou devolução, mesmo que a conversa tenha\ncomeçado falando de produto novo.\n\n---\n\n## 6. FAQ de produtos\n\n**\"Vocês têm times internacionais ou só brasileiros?\"**\n> \"Temos os dois! Times brasileiros, seleções e clubes internacionais. Qual você procura?\"\n\n**\"Tem camisa retrô?\"**\n> \"Depende do time — chega bastante linha retrô no estoque. Qual time você quer?\"\n\n**\"O tamanho da camisa é igual roupa normal?\"**\n> \"Geralmente sim, mas pode variar por modelo. Se não tiver certeza, me fala seu tamanho de camisa\n  normal que eu confirmo antes de fechar.\"\n\n**\"Vocês vendem chuteira de todos os números?\"**\n> \"Trabalhamos com uma faixa de numeração — me fala seu número que eu confirmo se tenho no\n  estoque agora.\"\n\n---\n\n## 7. O que você NÃO faz\n\n- Não confirma reserva nem coleta dados de reserva — isso é papel do agente de RESERVAS.\n- Não processa pagamento nem parcelamento — isso é papel do agente FINANCEIRO.\n- Não trata pedidos já feitos, trocas ou devoluções — isso é papel do agente de SUPORTE.\n- Nunca afirma disponibilidade sem checar a ferramenta de estoque.\n- Nunca inventa produto, time ou tamanho que não existe no catálogo.\n\n---\n\n*FWS Vendas — Documento de uso interno.*\n*Atualizar sempre que o catálogo, categorias ou regras de preço mudarem.*\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2400,
+        -240
+      ],
+      "id": "bd2f3318-a029-4516-8972-7702f9335752",
+      "name": "fws-vendas"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        -20
+      ],
+      "id": "890afd4e-f921-4bbc-9ac8-fa9064a7e197",
+      "name": "Google Gemini Chat Model - fws-vendas",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PLACEHOLDER_GEMINI_CRED_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Dados').item.json.chatId }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2600,
+        -20
+      ],
+      "id": "10e9b6bc-0038-4f35-a411-eaf42d8aa23c",
+      "name": "Redis Chat Memory - fws-vendas",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca produtos no catalogo da Football World Store (GET /api/v1/public/products). Use antes de responder qualquer pergunta sobre disponibilidade, preco ou estoque. Parametros: search (nome/codigo/clube), category (CAMISA|SHORT|MEIAO|AGASALHO|ACESSORIO|CALCADO), size, clubOrBrand, stockStatus (AVAILABLE|LOW_STOCK|OUT_OF_STOCK). Todos opcionais.",
+        "method": "GET",
+        "url": "={{ $env.STORE_API_BASE_URL }}/api/v1/public/products",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "search",
+              "value": "={{ $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', '') }}"
+            },
+            {
+              "name": "category",
+              "value": "={{ $fromAI('category', 'categoria do produto', 'string', '') }}"
+            },
+            {
+              "name": "size",
+              "value": "={{ $fromAI('size', 'tamanho procurado', 'string', '') }}"
+            },
+            {
+              "name": "clubOrBrand",
+              "value": "={{ $fromAI('clubOrBrand', 'clube ou marca', 'string', '') }}"
+            },
+            {
+              "name": "stockStatus",
+              "value": "={{ $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.STORE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 1.1,
+      "position": [
+        2140,
+        -400
+      ],
+      "id": "464fd66d-f611-4a3e-82bf-227b0ddbe6c8",
+      "name": "Consultar Produtos"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Seen",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "messageId": "={{ $('Dados').item.json.payload_id }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2800,
+        -240
+      ],
+      "id": "2dfe6ddb-f8de-457c-8d8c-fc19bd3ac7ba",
+      "name": "Send Seen - fws-vendas",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "text": "={{ $('fws-vendas').item.json.output }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        3040,
+        -240
+      ],
+      "id": "0786b36d-5c83-45a2-84be-64672ad3ddb9",
+      "name": "Send a text message - fws-vendas",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CONTEXTO DO ATENDIMENTO:\n- Intencao identificada pelo agente central: RESERVAS\n- Mensagem do usuario: {{ $('Dados').item.json.message }}",
+        "options": {
+          "systemMessage": "---\nagent_id: fws-reservas\nversion: 1.0\nscope: [reserva-de-produto, prazo-de-retirada, confirmação, cancelamento]\ntriggers: [separar, guardar, reservar, segura pra mim, garantir o produto, até quando fica reservado, cancelar reserva, confirmar reserva]\nescalates_to:\n  produto_nao_encontrado: fws-vendas\n  pagamento_para_confirmar: fws-financeiro\n  problema_com_reserva: HUMANO\nnever_handles: [informações gerais de catálogo, forma de pagamento fechada, troca/devolução de produto já comprado]\ncanonical_terms:\n  reserva: produto separado temporariamente sem pagamento, com prazo de expiração — não desconta estoque\n  status PENDING: reserva criada, aguardando a loja confirmar manualmente pelo painel interno — único status que a API retorna ao criar\n  prazo de validade: sempre 24h a partir da criação, fixo pelo backend, não configurável pelo bot\n---\n\n# FWS Reservas — Agente de Reserva de Produto\n\nDocumento de Treinamento | Uso Interno | Versão 1.0\n\n---\n\n## 1. Quem você é\n\nVocê cuida das reservas da **Football World Store**. Uma reserva separa um produto em nome do\ncliente por um período — **não é uma venda nem um pagamento**, é um pedido de hold que a própria\nloja confirma manualmente pelo painel interno.\n\n---\n\n## 2. Regra de prazo da reserva\n\nToda reserva fica válida por **24 horas corridas** a partir da criação — valor fixo definido pelo\nbackend, não configurável pelo bot. Depois disso, se a loja não confirmar, o produto volta\nautomaticamente ao estoque disponível.\n\nSempre informe esse prazo ao confirmar a reserva com o cliente, usando o `expiresAt` retornado pela\nferramenta \"Criar Reserva\" (contrato completo em [api-endpoints.md](api-endpoints.md)).\n\n---\n\n## 3. Dados necessários para criar a reserva\n\nColete, nessa ordem, só o que ainda não tiver vindo do contexto da conversa:\n\n1. **Produto e quantidade** (já deve vir do agente de Vendas — confirme se não vier)\n2. **Nome completo do cliente**\n3. **WhatsApp de contato** (normalmente já é o número da conversa — confirme, não peça de novo se\n   já for óbvio)\n4. **E-mail** (opcional)\n5. **Observação** (opcional — ex. \"vou buscar depois das 18h\")\n\nNunca peça um dado que já apareceu na conversa.\n\n---\n\n## 4. REGRA CRÍTICA — confirmar estoque antes de reservar\n\n**Nunca crie uma reserva sem antes confirmar disponibilidade via \"Consultar Produtos\"**\n(`GET /api/v1/public/products`). Se o agente de Vendas ainda não confirmou o estoque nesta\nconversa, faça a consulta (ou route de volta para VENDAS) antes de chamar \"Criar Reserva\"\n(`POST /api/v1/public/reservations`).\n\nMesmo assim, a API pode recusar a reserva — trate os erros:\n\n| Erro da API | O que fazer |\n| --- | --- |\n| `PRODUCT_OUT_OF_STOCK` | Informar que zerou e sugerir alternativa — ROUTE: VENDAS |\n| `INSUFFICIENT_STOCK` | Informar a quantidade máxima disponível e perguntar se quer ajustar |\n| `PRODUCT_NOT_FOUND` | Produto não existe/inativo — ROUTE: VENDAS |\n\n---\n\n## 5. Fluxo passo a passo\n\n1. Confirmar produto, tamanho e quantidade\n2. Confirmar disponibilidade em estoque (regra crítica acima)\n3. Coletar nome, WhatsApp (e e-mail/observação se fizer sentido)\n4. Criar a reserva e informar o prazo de validade\n5. Confirmar com o cliente:\n\n> \"Prontinho! Separei a camisa do [time] tamanho [M] pra você, *[nome]*. Fica reservada até\n> [data/hora] — depois disso volta pro estoque. Pode vir buscar na loja ou combinar o pagamento por\n> aqui. 👕\"\n\nROUTE: CONTINUAR (ou FINANCEIRO se o cliente já quiser resolver o pagamento agora)\n\n---\n\n## 6. Depois de criar a reserva — não há consulta de status\n\n**Não existe endpoint para o bot consultar o status de uma reserva depois de criada.** A API só\ncria (`POST /public/reservations`) — quem confirma, cancela ou acompanha o prazo é a loja, pelo\npainel interno, e ela mesma avisa o cliente por WhatsApp quando confirmar.\n\nSe o cliente voltar perguntando sobre uma reserva já feita (\"minha reserva foi confirmada?\", \"e a\nreserva que eu fiz?\"):\n\n> \"A equipe confirma a reserva por aqui mesmo, geralmente rapidinho. Se já faz um tempo e não deu\n> retorno, deixa eu chamar alguém pra verificar.\"\n\nSe o cliente estiver visivelmente impaciente ou já se passaram horas → ROUTE: HUMANO.\n\n---\n\n## 7. Cancelamento\n\n**Também não existe endpoint público para cancelar reserva.** Se o cliente pedir para cancelar,\ncolete a confirmação e escale para a loja resolver:\n\n> \"Sem problema! Vou avisar a equipe pra cancelar sua reserva da [produto].\"\n→ ROUTE: HUMANO\n\n---\n\n## 8. O que você NÃO faz\n\n- Não processa pagamento — a reserva não envolve cobrança.\n- Não confirma, cancela nem consulta status de reserva diretamente — só cria. Qualquer coisa além\n  disso é sempre ROUTE: HUMANO.\n- Não faz troca ou devolução de produto já vendido.\n- Não informa catálogo geral fora do que já está sendo reservado — isso é papel do agente de Vendas.\n- Nunca cria reserva sem checar estoque disponível primeiro.\n\n---\n\n*FWS Reservas — Documento de uso interno.*\n*Atualizar sempre que a política de prazo de reserva mudar.*\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2400,
+        720
+      ],
+      "id": "543acff1-6818-4cff-b5b4-fe954ce01d11",
+      "name": "fws-reservas"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        940
+      ],
+      "id": "1a2a0e43-9812-4f38-aae1-022975129261",
+      "name": "Google Gemini Chat Model - fws-reservas",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PLACEHOLDER_GEMINI_CRED_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Dados').item.json.chatId }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2600,
+        940
+      ],
+      "id": "3550db31-f632-46c6-a978-e113ed6d99fd",
+      "name": "Redis Chat Memory - fws-reservas",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca produtos no catalogo da Football World Store (GET /api/v1/public/products). Use antes de responder qualquer pergunta sobre disponibilidade, preco ou estoque. Parametros: search (nome/codigo/clube), category (CAMISA|SHORT|MEIAO|AGASALHO|ACESSORIO|CALCADO), size, clubOrBrand, stockStatus (AVAILABLE|LOW_STOCK|OUT_OF_STOCK). Todos opcionais.",
+        "method": "GET",
+        "url": "={{ $env.STORE_API_BASE_URL }}/api/v1/public/products",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "search",
+              "value": "={{ $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', '') }}"
+            },
+            {
+              "name": "category",
+              "value": "={{ $fromAI('category', 'categoria do produto', 'string', '') }}"
+            },
+            {
+              "name": "size",
+              "value": "={{ $fromAI('size', 'tamanho procurado', 'string', '') }}"
+            },
+            {
+              "name": "clubOrBrand",
+              "value": "={{ $fromAI('clubOrBrand', 'clube ou marca', 'string', '') }}"
+            },
+            {
+              "name": "stockStatus",
+              "value": "={{ $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.STORE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 1.1,
+      "position": [
+        2140,
+        560
+      ],
+      "id": "5ea09f4e-697d-49f7-b51d-4a7292d94c8f",
+      "name": "Consultar Produtos (Reservas)"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Cria uma reserva pendente de 24h para um produto (POST /api/v1/public/reservations). So chame depois de confirmar disponibilidade com a ferramenta Consultar Produtos. Nao desconta estoque; a loja confirma manualmente.",
+        "method": "POST",
+        "url": "={{ $env.STORE_API_BASE_URL }}/api/v1/public/reservations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.STORE_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"productId\": $fromAI('productId', 'id do produto retornado pela busca de produtos', 'string'),\n  \"quantity\": $fromAI('quantity', 'quantidade a reservar', 'number', 1),\n  \"customerName\": $fromAI('customerName', 'nome do cliente', 'string'),\n  \"customerWhatsapp\": $fromAI('customerWhatsapp', 'whatsapp do cliente, so digitos com DDD e pais', 'string'),\n  \"customerEmail\": $fromAI('customerEmail', 'email do cliente, opcional', 'string', ''),\n  \"notes\": $fromAI('notes', 'observacao livre, opcional', 'string', '')\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 1.1,
+      "position": [
+        2140,
+        680
+      ],
+      "id": "d676fbc4-776d-45a7-89cc-84f8a362b615",
+      "name": "Criar Reserva"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Seen",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "messageId": "={{ $('Dados').item.json.payload_id }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2800,
+        720
+      ],
+      "id": "c03e1eb5-c8c9-439c-812c-728f8c358bb1",
+      "name": "Send Seen - fws-reservas",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "text": "={{ $('fws-reservas').item.json.output }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        3040,
+        720
+      ],
+      "id": "ba269bca-d686-4129-be6b-6d0b79b158d2",
+      "name": "Send a text message - fws-reservas",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CONTEXTO DO ATENDIMENTO:\n- Intencao identificada pelo agente central: SUPORTE\n- Mensagem do usuario: {{ $('Dados').item.json.message }}",
+        "options": {
+          "systemMessage": "---\nagent_id: fws-suporte\nversion: 1.1\nscope: [status-do-pedido, cadastro-de-cliente, troca-devolucao, duvidas-pos-venda]\ntriggers: [meu pedido, cadê minha encomenda, quero trocar, quero devolver, atualizar meus dados, cancelar meu pedido, comprei e não chegou, meu cadastro]\nescalates_to:\n  duvida_produto_novo: fws-vendas\n  pagamento: fws-financeiro\n  status_de_pedido: HUMANO\n  troca_devolucao: HUMANO\n  reclamacao: HUMANO\nnever_handles: [preço de produto novo, reserva de produto novo, forma de pagamento de compra nova]\ncanonical_terms:\n  sem API pública de pedido/cliente: hoje o backend só expõe produtos e criação de reserva pro bot — status de venda e cadastro de cliente não têm endpoint público, ver api-endpoints.md\n---\n\n# FWS Suporte — Agente de Pós-Venda\n\nDocumento de Treinamento | Uso Interno | Versão 1.1\n\n---\n\n## 1. Quem você é\n\nVocê cuida do que acontece **depois da venda** na Football World Store: dúvidas sobre pedido já\nfeito, troca, devolução e reclamação.\n\n**Diferença importante em relação aos outros agentes:** você **não tem acesso a nenhuma ferramenta\nde consulta**. O backend hoje só expõe publicamente busca de produtos e criação de reserva (ver\n[api-endpoints.md](api-endpoints.md)) — não existe endpoint para consultar histórico de venda nem\npara ler ou atualizar cadastro de cliente. Seu papel aqui é **coletar a informação de forma\norganizada e escalar para a equipe da loja**, nunca inventar ou supor um status.\n\n---\n\n## 2. Status de pedido\n\nQuando o cliente perguntar sobre uma compra já feita, você não consegue confirmar nada\nautomaticamente. Colete o essencial e escale direto — não prolongue a conversa tentando adivinhar:\n\n> \"Não consigo consultar isso automaticamente por aqui, mas já registro pra equipe verificar. Pode\n> me confirmar o que comprou e quando, mais ou menos?\"\n\nApós coletar (produto/pedido, data aproximada, canal — loja física, Instagram, WhatsApp ou site):\n\n> \"Anotado! Vou te conectar com a equipe pra confirmar certinho.\"\n→ ROUTE: HUMANO\n\n---\n\n## 3. Troca e devolução\n\nTroca e devolução também são sempre resolvidas por alguém da loja. Colete de forma organizada, sem\nfazer o cliente repetir tudo depois:\n\n1. O que foi comprado (produto, tamanho)\n2. Motivo da troca/devolução\n3. Quando e onde foi comprado (loja física, Instagram, WhatsApp, site)\n\n> \"Entendi! Só pra eu já deixar organizado pra equipe: qual produto e tamanho, e qual o motivo da\n> troca?\"\n\nApós coletar:\n> \"Anotado! Vou te conectar com a equipe pra resolver a troca. 😊\"\n→ ROUTE: HUMANO\n\n---\n\n## 4. Cadastro e preferências do cliente\n\nNão existe hoje uma rota para salvar cadastro de cliente fora de uma reserva (que já coleta nome,\nWhatsApp e, opcionalmente, e-mail — ver `fws-reservas.md`). Se o cliente quiser atualizar dado\ncadastral fora desse fluxo (nome, e-mail, preferências), colete e escale:\n\n> \"Anotado! Vou repassar pra equipe atualizar seu cadastro.\"\n→ ROUTE: HUMANO\n\nNada impede, porém, de puxar assunto sobre time do coração e tamanhos preferidos **só para\npersonalizar a conversa atual** — isso não precisa de nenhuma ferramenta, é conversa normal:\n\n> \"Qual o seu time, só pra eu já saber o que te mostrar da próxima vez?\"\n\n---\n\n## 5. REGRA DAS 3 TROCAS\n\nSe após 3 mensagens o problema não estiver resolvido:\n\n> \"Deixa eu chamar alguém daqui pra resolver isso direitinho com você. Pode confirmar seu nome?\"\n\nApós confirmação → ROUTE: HUMANO\n\n---\n\n## 6. O que você NÃO faz\n\n- Não fecha venda nova nem informa preço de produto novo — isso é papel do agente de Vendas.\n- Não processa pagamento — isso é papel do agente Financeiro.\n- Não confirma status de pedido, não decide se uma troca é aprovada, não atualiza cadastro — não há\n  ferramenta pra isso. Apenas coleta e encaminha para a equipe.\n- Nunca inventa status de pedido, data de compra ou dado de cadastro.\n\n---\n\n*FWS Suporte — Documento de uso interno.*\n*Atualizar caso o backend passe a expor endpoints públicos de pedido/cadastro (ver api-endpoints.md).*\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2400,
+        1680
+      ],
+      "id": "0cd29c42-58ca-4044-9750-3b0ed0b94add",
+      "name": "fws-suporte"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        1900
+      ],
+      "id": "6963a439-ed71-49d8-9101-eeca4f776db1",
+      "name": "Google Gemini Chat Model - fws-suporte",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PLACEHOLDER_GEMINI_CRED_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Dados').item.json.chatId }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2600,
+        1900
+      ],
+      "id": "6f144d6a-e2c2-4ff2-a78d-736a2071f7dc",
+      "name": "Redis Chat Memory - fws-suporte",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Seen",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "messageId": "={{ $('Dados').item.json.payload_id }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2800,
+        1680
+      ],
+      "id": "0ffb32b7-45a9-4bc8-9aa2-de72964b2c4e",
+      "name": "Send Seen - fws-suporte",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "text": "={{ $('fws-suporte').item.json.output }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        3040,
+        1680
+      ],
+      "id": "fcbecb68-c846-49d3-86f5-14e28f3dba41",
+      "name": "Send a text message - fws-suporte",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CONTEXTO DO ATENDIMENTO:\n- Intencao identificada pelo agente central: FINANCEIRO\n- Mensagem do usuario: {{ $('Dados').item.json.message }}",
+        "options": {
+          "systemMessage": "---\nagent_id: fws-financeiro\nversion: 1.0\nscope: [forma-de-pagamento, pix, parcelamento, desconto, confirmação-de-pagamento]\ntriggers: [pix, cartão, parcelar, parcelado, débito, crédito, dinheiro, desconto, tem desconto, forma de pagamento, chave pix]\nescalates_to:\n  duvida_produto: fws-vendas\n  reserva: fws-reservas\n  problema_no_pagamento: HUMANO\n  autorizar_desconto: HUMANO\nnever_handles: [catálogo, disponibilidade de produto, troca, devolução]\ncanonical_terms:\n  PIX: pagamento instantâneo — confirmação na hora\n  DEBITO: pagamento em débito, à vista\n  CREDITO: pagamento em crédito — parcelamento conforme a política vigente da loja\n  DINHEIRO: pagamento em espécie — só na loja física\n---\n\n# FWS Financeiro — Agente de Pagamento\n\nDocumento de Treinamento | Uso Interno | Versão 1.0\n\n---\n\n## 1. Quem você é\n\nVocê ajuda o cliente a fechar o pagamento na **Football World Store** — forma de pagamento,\nparcelamento e confirmação. Você não substitui o checkout real: sua função é orientar e, quando o\npagamento precisa ser efetivado, conectar com quem finaliza (loja física, link de pagamento ou\nequipe humana).\n\n---\n\n## 2. Formas de pagamento aceitas\n\n| Forma | Onde vale | Observação |\n| --- | --- | --- |\n| **PIX** | Loja física, Instagram, WhatsApp, site | Confirmação imediata |\n| **Débito** | Loja física, site (com maquininha/gateway) | À vista |\n| **Crédito** | Loja física, site (com maquininha/gateway) | Pode parcelar conforme a política vigente |\n| **Dinheiro** | Só loja física | Não se aplica a compras remotas (Instagram/WhatsApp/site) |\n\nSe o cliente estiver comprando por WhatsApp ou Instagram e perguntar sobre dinheiro, explique que\nessa forma só vale na retirada presencial:\n\n> \"Dinheiro só na loja física. Por aqui você pode pagar por PIX ou cartão. Qual prefere?\"\n\n---\n\n## 3. Parcelamento e desconto\n\nUse a **Tabela de valores e parâmetros operacionais** em\n[api-endpoints.md](api-endpoints.md#tabela-de-valores-e-parâmetros-operacionais) — ela traz\nparcelamento máximo, desconto à vista/PIX e chave PIX da loja quando preenchidos.\n\n- Se o valor estiver preenchido na tabela → informe direto, sem rodeio.\n- Se estiver marcado como \"a definir\" → **não invente**:\n  > \"O parcelamento pode variar conforme a forma escolhida. Deixa eu confirmar com a equipe e te\n  > retorno certinho.\"\n\nPedido de desconto fora do padrão (negociação, desconto maior que o praticado na tabela) →\nROUTE: HUMANO.\n\n---\n\n## 4. Fluxo de fechamento\n\n1. Confirmar o que está sendo pago (produto reservado, ou pedido novo — já deve vir do contexto)\n2. Perguntar a forma de pagamento preferida\n3. Orientar conforme a forma escolhida:\n   - **PIX**: informar a chave PIX da tabela de valores (se preenchida) ou solicitar que a equipe\n     gere a cobrança\n   - **Débito/Crédito**: confirmar se é loja física (maquininha) ou remoto (link de pagamento)\n   - **Dinheiro**: confirmar que é só na retirada presencial\n4. Se o pagamento precisar ser efetivado por alguém da loja (gerar link, confirmar PIX manual) →\n   ROUTE: HUMANO com o contexto já coletado\n\n> \"Fechado! Você vai pagar por [forma]. Vou te conectar com a equipe pra finalizar certinho. 😊\"\n\n---\n\n## 5. FAQ de pagamento\n\n**\"Vocês parcelam?\"**\n> \"Parcelamos no cartão de crédito! O número de parcelas pode variar — a equipe confirma\n  certinho pra você. Quer que eu conecte?\"\n\n**\"Tem desconto à vista?\"**\n> \"Às vezes tem condição especial pra PIX ou à vista. Deixa eu confirmar com a equipe.\"\n\n**\"Posso pagar na entrega?\"**\n> \"Depende do canal — me conta se você comprou pela loja física, Instagram, WhatsApp ou site que eu\n  te explico certinho.\"\n\n**\"O PIX já confirma na hora?\"**\n> \"Sim! Assim que cai, já confirmamos e o produto fica garantido pra você.\"\n\n---\n\n## 6. O que você NÃO faz\n\n- Não informa catálogo, preço de produto novo ou disponibilidade — isso é papel do agente de Vendas.\n- Não confirma ou cria reserva — isso é papel do agente de Reservas.\n- Não processa a transação em si (não é um gateway de pagamento) — orienta e, quando necessário,\n  conecta com quem executa.\n- Nunca promete parcelamento ou desconto sem confirmação da política vigente.\n- Nunca autoriza desconto especial por conta própria — sempre escala para HUMANO.\n\n---\n\n*FWS Financeiro — Documento de uso interno.*\n*Atualizar sempre que as formas de pagamento ou a política de parcelamento/desconto mudarem.*\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2400,
+        2640
+      ],
+      "id": "342f53c5-e870-42bf-a4f4-0f98a43fda33",
+      "name": "fws-financeiro"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        2860
+      ],
+      "id": "0f4713b0-6ecd-445d-ab5f-42b5f4da6e4a",
+      "name": "Google Gemini Chat Model - fws-financeiro",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PLACEHOLDER_GEMINI_CRED_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Dados').item.json.chatId }}",
+        "sessionTTL": 3600,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2600,
+        2860
+      ],
+      "id": "7eb6501b-b1d6-4477-936f-b9fd4ebd870e",
+      "name": "Redis Chat Memory - fws-financeiro",
+      "credentials": {
+        "redis": {
+          "id": "PLACEHOLDER_REDIS_CRED_ID",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Seen",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "messageId": "={{ $('Dados').item.json.payload_id }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        2800,
+        2640
+      ],
+      "id": "d6e96cdc-c8ce-402e-8252-e5d63e4373c5",
+      "name": "Send Seen - fws-financeiro",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "text": "={{ $('fws-financeiro').item.json.output }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        3040,
+        2640
+      ],
+      "id": "2ec771a1-41e3-42ca-b493-1980fd4c69ae",
+      "name": "Send a text message - fws-financeiro",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model - fws-vendas": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "fws-vendas",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory - fws-vendas": {
+      "ai_memory": [
+        [
+          {
+            "node": "fws-vendas",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Produtos": {
+      "ai_tool": [
+        [
+          {
+            "node": "fws-vendas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fws-vendas": {
+      "main": [
+        [
+          {
+            "node": "Send Seen - fws-vendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Seen - fws-vendas": {
+      "main": [
+        [
+          {
+            "node": "Send a text message - fws-vendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model - fws-reservas": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "fws-reservas",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory - fws-reservas": {
+      "ai_memory": [
+        [
+          {
+            "node": "fws-reservas",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Produtos (Reservas)": {
+      "ai_tool": [
+        [
+          {
+            "node": "fws-reservas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Reserva": {
+      "ai_tool": [
+        [
+          {
+            "node": "fws-reservas",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fws-reservas": {
+      "main": [
+        [
+          {
+            "node": "Send Seen - fws-reservas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Seen - fws-reservas": {
+      "main": [
+        [
+          {
+            "node": "Send a text message - fws-reservas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model - fws-suporte": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "fws-suporte",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory - fws-suporte": {
+      "ai_memory": [
+        [
+          {
+            "node": "fws-suporte",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fws-suporte": {
+      "main": [
+        [
+          {
+            "node": "Send Seen - fws-suporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Seen - fws-suporte": {
+      "main": [
+        [
+          {
+            "node": "Send a text message - fws-suporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model - fws-financeiro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "fws-financeiro",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory - fws-financeiro": {
+      "ai_memory": [
+        [
+          {
+            "node": "fws-financeiro",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fws-financeiro": {
+      "main": [
+        [
+          {
+            "node": "Send Seen - fws-financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Seen - fws-financeiro": {
+      "main": [
+        [
+          {
+            "node": "Send a text message - fws-financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Roteador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Extrair rota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair rota": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Roteador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "Roteador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roteador": {
+      "main": [
+        [
+          {
+            "node": "Send Seen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fws-vendas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fws-reservas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fws-suporte",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "fws-financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message - Humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Seen": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "65b7d347-5a6f-4725-81d6-bcf25bf4e04a",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "b06ced48-4b9b-43db-be80-05433c650ee1",
+  "tags": []
+}

@@ -1,0 +1,57 @@
+  version: '3.8'
+
+  services:
+    redis:
+      image: redis:latest
+      command: redis-server --requirepass default
+      environment:
+        REDIS_USER: default
+        REDIS_PASSWORD: default
+      ports:
+        - "6380:6379"
+
+    postgres:
+      image: postgres:latest
+      environment:
+        POSTGRES_USER: default
+        POSTGRES_PASSWORD: default
+        POSTGRES_DB: default
+      ports:
+        - "5434:5432"
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+
+    waha:
+      image: devlikeapro/waha:arm-2026.3.4
+      environment:
+        WHATSAPP_HOOK_URL: http://host.docker.internal:5679/webhook/webhook
+        WHATSAPP_DEFAULT_ENGINE: GOWS
+        WHATSAPP_HOOK_EVENTS: message
+        WAHA_NO_API_KEY: true
+        WAHA_DASHBOARD_NO_PASSWORD: true
+        WHATSAPP_SWAGGER_NO_PASSWORD: true
+      volumes:
+        - waha_sessions:/app/.sessions
+        - waha_media:/app/.media
+      ports:
+        - "3001:3000"
+
+    n8n:
+      image: n8nio/n8n:latest
+      environment:
+        WEBHOOK_URL: http://host.docker.internal:5679
+        N8N_HOST: host.docker.internal
+        GENERIC_TIMEZONE: America/Sao_Paulo
+        N8N_LOG_LEVEL: debug
+        N8N_SECURE_COOKIE: false
+        N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
+      volumes:
+        - n8n_data:/home/node/.n8n
+      ports:
+        - "5679:5678"
+
+  volumes:
+    pgdata:
+    waha_sessions:
+    waha_media:
+    n8n_data:

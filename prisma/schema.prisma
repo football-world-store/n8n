@@ -1,0 +1,430 @@
+// ============================================================================
+// Football World Store — Schema Prisma
+// Sistema Web de Gestão de Estoque
+// Convenções: UUID (db-generated), @map pt-BR, models en-US, multi-schema
+// Otimizações: índices compostos, campos desnormalizados, multi-schema
+//
+// Copiado do sistema de estoque/vendas real da loja — fonte de verdade para os
+// termos canônicos (categorias, status, canais) usados nos agentes em docs/agents/.
+// Não editar aqui sem sincronizar com o schema original do sistema web.
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "multiSchema"]
+  output          = "../../../../src/generated/prisma"
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [pgcrypto, uuid_ossp(map: "uuid-ossp")]
+  schemas    = ["store_auth", "store_inventory", "store_sales", "store_customers", "store_alerts", "store_audit"]
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  OWNER    @map("DONO")
+  EMPLOYEE @map("FUNCIONARIO")
+
+  @@schema("store_auth")
+}
+
+enum ProductCategory {
+  CAMISA
+  SHORT
+  MEIAO
+  AGASALHO
+  ACESSORIO
+  CALCADO
+
+  @@schema("store_inventory")
+}
+
+enum StockMovementType {
+  ENTRY   @map("ENTRADA")
+  REVERSE @map("ESTORNO")
+
+  @@schema("store_inventory")
+}
+
+enum SaleChannel {
+  LOJA_FISICA
+  INSTAGRAM
+  WHATSAPP
+  SITE
+
+  @@schema("store_sales")
+}
+
+enum PaymentMethod {
+  DINHEIRO
+  PIX
+  DEBITO
+  CREDITO
+
+  @@schema("store_sales")
+}
+
+enum SaleStatus {
+  CONFIRMED @map("CONFIRMADA")
+  CANCELLED @map("CANCELADA")
+
+  @@schema("store_sales")
+}
+
+enum ReservationStatus {
+  PENDING   @map("AGUARDANDO")
+  CONFIRMED @map("CONFIRMADA")
+  CANCELLED @map("CANCELADA")
+  EXPIRED   @map("EXPIRADA")
+
+  @@schema("store_sales")
+}
+
+enum CustomerStatus {
+  ACTIVE   @map("ATIVO")
+  COOLING  @map("ESFRIANDO")
+  INACTIVE @map("SUMIDO")
+
+  @@schema("store_customers")
+}
+
+enum AlertType {
+  STOCK_LOW    @map("ESTOQUE_CRITICO")
+  STOCK_OUT    @map("ESTOQUE_ZERADO")
+  PRODUCT_IDLE @map("PRODUTO_PARADO")
+
+  @@schema("store_alerts")
+}
+
+enum AlertSeverity {
+  CRITICAL      @map("CRITICO")
+  INFORMATIONAL @map("INFORMATIVO")
+
+  @@schema("store_alerts")
+}
+
+enum AuditAction {
+  CREATE @map("CRIACAO")
+  UPDATE @map("EDICAO")
+  DELETE @map("EXCLUSAO")
+  SALE   @map("VENDA")
+  ENTRY  @map("ENTRADA")
+  CANCEL @map("CANCELAMENTO")
+  LOGIN  @map("LOGIN")
+  LOGOUT @map("LOGOUT")
+
+  @@schema("store_audit")
+}
+
+// ============================================================================
+// STORE_AUTH — Usuários, Sessões
+// ============================================================================
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cognitoId String   @unique @map("cognito_id")
+  name      String   @map("nome")
+  email     String   @unique @map("email")
+  role      UserRole @default(EMPLOYEE) @map("perfil")
+  isActive  Boolean  @default(true) @map("ativo")
+  createdAt DateTime @default(now()) @map("criado_em")
+  updatedAt DateTime @updatedAt @map("atualizado_em")
+
+  sessions     UserSession[]
+  stockEntries StockEntry[]
+  sales        Sale[]
+  auditLogs    AuditLog[]
+
+  @@index([cognitoId], map: "users_ix_cognito")
+  @@index([email], map: "users_ix_email")
+  @@index([role, isActive], map: "users_ix_perfil_ativo")
+  @@map("users")
+  @@schema("store_auth")
+}
+
+model UserSession {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("usuario_id") @db.Uuid
+  refreshToken String    @unique @map("refresh_token")
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent")
+  expiresAt    DateTime  @map("expira_em")
+  revokedAt    DateTime? @map("revogado_em")
+  createdAt    DateTime  @default(now()) @map("criado_em")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_ix_usuario")
+  @@index([expiresAt], map: "sessions_ix_expiracao")
+  @@index([userId, revokedAt], map: "sessions_ix_usuario_ativa")
+  @@map("user_sessions")
+  @@schema("store_auth")
+}
+
+// ============================================================================
+// STORE_INVENTORY — Produtos, Entradas de Mercadoria
+// ============================================================================
+
+model Product {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  internalCode String          @unique @map("codigo_interno")
+  name         String          @map("nome")
+  clubOrBrand  String          @map("clube_marca")
+  category     ProductCategory @map("categoria")
+  size         String          @map("tamanho")
+  photoUrl     String?         @map("foto_url")
+  costPrice    Decimal         @map("preco_custo") @db.Decimal(10, 2)
+  salePrice    Decimal         @map("preco_venda") @db.Decimal(10, 2)
+  quantity     Int             @default(0) @map("quantidade")
+  minStock     Int             @default(0) @map("estoque_minimo")
+  isActive     Boolean         @default(true) @map("ativo")
+
+  // --- Campos desnormalizados para acelerar dashboard e filtros ---
+  lastSaleAt   DateTime?       @map("ultima_venda_em")
+  totalSold    Int             @default(0) @map("total_vendido")
+
+  createdAt    DateTime        @default(now()) @map("criado_em")
+  updatedAt    DateTime        @updatedAt @map("atualizado_em")
+
+  stockEntries StockEntry[]
+  saleItems    SaleItem[]
+  reservations Reservation[]
+  alerts       Alert[]
+
+  // Índices para filtros combinados (Módulo 1 — 3.1.3)
+  @@index([clubOrBrand], map: "products_ix_clube_marca")
+  @@index([category], map: "products_ix_categoria")
+  @@index([size], map: "products_ix_tamanho")
+  @@index([isActive, quantity], map: "products_ix_ativo_qtd")
+
+  // Índice composto para filtros combinados: clube + categoria + tamanho + status
+  @@index([isActive, clubOrBrand, category, size], map: "products_ix_filtro_combinado")
+
+  // Dashboard: produtos mais vendidos, produtos parados
+  @@index([isActive, totalSold(sort: Desc)], map: "products_ix_mais_vendidos")
+  @@index([isActive, lastSaleAt], map: "products_ix_parados")
+
+  // Busca por nome (LIKE queries — GIN trigram seria ideal mas Prisma não suporta)
+  @@index([name], map: "products_ix_nome")
+
+  @@map("products")
+  @@schema("store_inventory")
+}
+
+model StockEntry {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId       String            @map("produto_id") @db.Uuid
+  movementType    StockMovementType @default(ENTRY) @map("tipo_movimento")
+  quantity        Int               @map("quantidade")
+  unitCost        Decimal           @map("custo_unitario") @db.Decimal(10, 2)
+  supplier        String            @map("fornecedor")
+  notes           String?           @map("observacao")
+  reversedEntryId String?           @unique @map("entrada_estornada_id") @db.Uuid
+  userId          String            @map("responsavel_id") @db.Uuid
+  entryDate       DateTime          @default(now()) @map("data_entrada")
+  createdAt       DateTime          @default(now()) @map("criado_em")
+
+  product       Product     @relation(fields: [productId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+  reversedEntry StockEntry? @relation("StockEntryReversal", fields: [reversedEntryId], references: [id])
+  reversal      StockEntry? @relation("StockEntryReversal")
+
+  @@index([productId], map: "stock_entries_ix_produto")
+  @@index([userId], map: "stock_entries_ix_responsavel")
+  @@index([entryDate], map: "stock_entries_ix_data_entrada")
+
+  // Filtro por período + produto (Módulo 2 — 4.1.3)
+  @@index([productId, entryDate(sort: Desc)], map: "stock_entries_ix_produto_data")
+  @@index([userId, entryDate(sort: Desc)], map: "stock_entries_ix_responsavel_data")
+
+  @@map("stock_entries")
+  @@schema("store_inventory")
+}
+
+// ============================================================================
+// STORE_SALES — Vendas, Itens de Venda
+// ============================================================================
+
+model Sale {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  saleNumber    Int           @unique @default(autoincrement()) @map("numero_venda")
+  customerId    String?       @map("cliente_id") @db.Uuid
+  channel       SaleChannel   @map("canal")
+  paymentMethod PaymentMethod @map("forma_pagamento")
+  discount      Decimal       @default(0) @map("desconto") @db.Decimal(10, 2)
+  totalAmount   Decimal       @map("valor_total") @db.Decimal(10, 2)
+  status        SaleStatus    @default(CONFIRMED) @map("status")
+  cancelledAt   DateTime?     @map("cancelado_em")
+  cancelledBy   String?       @map("cancelado_por") @db.Uuid
+  cancelReason  String?       @map("motivo_cancelamento")
+  userId        String        @map("responsavel_id") @db.Uuid
+  saleDate      DateTime      @default(now()) @map("data_venda")
+  createdAt     DateTime      @default(now()) @map("criado_em")
+
+  customer Customer? @relation(fields: [customerId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  items    SaleItem[]
+
+  // Filtros do histórico (Módulo 3 — 5.1.3)
+  @@index([customerId], map: "sales_ix_cliente")
+  @@index([userId], map: "sales_ix_responsavel")
+  @@index([channel], map: "sales_ix_canal")
+
+  // Dashboard: vendas por período, por canal, por status
+  @@index([status, saleDate(sort: Desc)], map: "sales_ix_status_data")
+  @@index([status, channel, saleDate], map: "sales_ix_status_canal_data")
+  @@index([status, paymentMethod, saleDate], map: "sales_ix_status_pagamento_data")
+
+  // Composto para queries de período com status confirmado
+  @@index([saleDate, status], map: "sales_ix_data_status")
+
+  @@map("sales")
+  @@schema("store_sales")
+}
+
+model SaleItem {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  saleId    String  @map("venda_id") @db.Uuid
+  productId String  @map("produto_id") @db.Uuid
+  quantity  Int     @map("quantidade")
+  unitPrice Decimal @map("preco_unitario") @db.Decimal(10, 2)
+  subtotal  Decimal @map("subtotal") @db.Decimal(10, 2)
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([saleId], map: "sale_items_ix_venda")
+  @@index([productId], map: "sale_items_ix_produto")
+
+  // Dashboard: ranking de produtos por quantidade vendida em período
+  @@index([productId, saleId], map: "sale_items_ix_produto_venda")
+
+  @@map("sale_items")
+  @@schema("store_sales")
+}
+
+model Reservation {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId        String            @map("produto_id") @db.Uuid
+  quantity         Int               @map("quantidade")
+  customerName     String            @map("nome_cliente")
+  customerWhatsapp String            @map("whatsapp_cliente")
+  customerEmail    String?           @map("email_cliente")
+  notes            String?           @map("observacoes")
+  status           ReservationStatus @default(PENDING) @map("status")
+  expiresAt        DateTime          @map("expira_em")
+  confirmedAt      DateTime?         @map("confirmado_em")
+  cancelledAt      DateTime?         @map("cancelado_em")
+  cancelReason      String?           @map("motivo_cancelamento")
+  createdAt        DateTime          @default(now()) @map("criado_em")
+  updatedAt        DateTime          @updatedAt @map("atualizado_em")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId, status], map: "reservations_ix_produto_status")
+  @@index([status, expiresAt], map: "reservations_ix_status_expiracao")
+  @@index([customerWhatsapp], map: "reservations_ix_whatsapp")
+  @@index([customerEmail], map: "reservations_ix_email")
+  @@index([createdAt(sort: Desc)], map: "reservations_ix_criado")
+
+  @@map("reservations")
+  @@schema("store_sales")
+}
+
+// ============================================================================
+// STORE_CUSTOMERS — Clientes
+// ============================================================================
+
+model Customer {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String         @map("nome")
+  whatsapp       String         @unique @map("whatsapp")
+  favoriteTeam   String?        @map("time_coracao")
+  preferredSizes String[]       @map("tamanhos_preferidos")
+  birthDate      DateTime?      @map("data_nascimento")
+  notes          String?        @map("observacoes")
+  status         CustomerStatus @default(ACTIVE) @map("status")
+  isActive       Boolean        @default(true) @map("ativo")
+
+  // --- Campos desnormalizados para acelerar rankings e segmentação ---
+  lastPurchaseAt DateTime?      @map("ultima_compra_em")
+  totalSpent     Decimal        @default(0) @map("total_gasto") @db.Decimal(12, 2)
+  purchaseCount  Int            @default(0) @map("total_compras")
+
+  createdAt      DateTime       @default(now()) @map("criado_em")
+  updatedAt      DateTime       @updatedAt @map("atualizado_em")
+
+  sales Sale[]
+
+  // Segmentação (Módulo 6 — 8.1.4): time + tamanho + status + faixa de valor
+  @@index([status], map: "customers_ix_status")
+  @@index([favoriteTeam], map: "customers_ix_time")
+  @@index([lastPurchaseAt], map: "customers_ix_ultima_compra")
+  @@index([status, favoriteTeam], map: "customers_ix_status_time")
+
+  // Rankings (Módulo 6 — 8.1.5)
+  @@index([totalSpent(sort: Desc)], map: "customers_ix_top_gasto")
+  @@index([purchaseCount(sort: Desc)], map: "customers_ix_top_compras")
+
+  @@map("customers")
+  @@schema("store_customers")
+}
+
+// ============================================================================
+// STORE_ALERTS — Alertas Inteligentes
+// ============================================================================
+
+model Alert {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type       AlertType     @map("tipo")
+  severity   AlertSeverity @map("severidade")
+  productId  String?       @map("produto_id") @db.Uuid
+  message    String        @map("mensagem")
+  isResolved Boolean       @default(false) @map("resolvido")
+  resolvedAt DateTime?     @map("resolvido_em")
+  resolvedBy String?       @map("resolvido_por") @db.Uuid
+  createdAt  DateTime      @default(now()) @map("criado_em")
+
+  product Product? @relation(fields: [productId], references: [id])
+
+  // Painel de alertas: pendentes primeiro, por severidade
+  @@index([isResolved, severity, createdAt(sort: Desc)], map: "alerts_ix_painel")
+  @@index([productId], map: "alerts_ix_produto")
+
+  // Contador de alertas pendentes no menu lateral
+  @@index([isResolved], map: "alerts_ix_pendentes")
+
+  @@map("alerts")
+  @@schema("store_alerts")
+}
+
+// ============================================================================
+// STORE_AUDIT — Log de Auditoria
+// ============================================================================
+
+model AuditLog {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String      @map("usuario_id") @db.Uuid
+  action    AuditAction @map("acao")
+  entity    String      @map("entidade")
+  entityId  String?     @map("entidade_id") @db.Uuid
+  metadata  Json?       @map("metadados")
+  ipAddress String?     @map("ip_address")
+  userAgent String?     @map("user_agent")
+  createdAt DateTime    @default(now()) @map("criado_em")
+
+  user User @relation(fields: [userId], references: [id])
+
+  // Filtros do log (Módulo 7 — 9.1)
+  @@index([userId, createdAt(sort: Desc)], map: "audit_ix_usuario_data")
+  @@index([action, createdAt(sort: Desc)], map: "audit_ix_acao_data")
+  @@index([entity, entityId], map: "audit_ix_entidade")
+  @@index([createdAt(sort: Desc)], map: "audit_ix_cronologico")
+
+  @@map("audit_logs")
+  @@schema("store_audit")
+}

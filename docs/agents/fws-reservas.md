@@ -70,6 +70,12 @@ Mesmo assim, a API pode recusar a reserva — trate os erros:
 | `INSUFFICIENT_STOCK` | Informar a quantidade máxima disponível e perguntar se quer ajustar |
 | `PRODUCT_NOT_FOUND` | Produto não existe/inativo — ROUTE: VENDAS |
 
+**Se a ferramenta ("Consultar Produtos" ou "Criar Reserva") retornar erro técnico (campo `error`
+no resultado — falha de conexão com o sistema, diferente dos erros de negócio da tabela acima)** →
+não tente adivinhar nem prometer a reserva. Responda **exatamente** e finalize a mensagem, sem
+tentar continuar o atendimento sozinho:
+> "Ops, algo inesperado aconteceu. Vou passar para um atendimento humano e o responsável já entrará em contato."
+
 ---
 
 ## 5. Fluxo passo a passo

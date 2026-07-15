@@ -254,6 +254,19 @@ fixo, sem gerar nada via LLM.
 `$fromAI(key, description, type, defaultValue)` é a função nativa do n8n pra deixar o LLM preencher
 um parâmetro — funciona em qualquer campo de um nó conectado como tool a um AI Agent.
 
+### Tratamento de falha técnica (`onError`)
+
+Os três nós de ferramenta (`Consultar Produtos`, `Consultar Produtos (Reservas)`, `Criar Reserva`)
+têm `"onError": "continueRegularOutput"`. Sem isso, uma falha de rede/timeout/erro do backend
+derrubaria a execução inteira do workflow e o cliente não receberia **nenhuma** resposta no
+WhatsApp. Com `continueRegularOutput`, a falha vira um item de saída com campo `error` — o LLM
+recebe isso como resultado da ferramenta e reage conforme a instrução dos respectivos `.md`
+(seção "REGRA CRÍTICA"): responde a mensagem fixa de fallback e escala pra humano, em vez de
+travar ou inventar uma resposta.
+
+> Isso é diferente de "nenhum produto encontrado" (busca válida, sem resultado) — esse caso não
+> tem `error`, é tratado separadamente em cada `.md` (resposta mais suave, sem escalar).
+
 ---
 
 ## Variáveis de Ambiente (.env do N8N)
@@ -323,6 +336,13 @@ estiver vago demais, o LLM pode responder sem consultar.
 **Erro de autenticação na chamada da API pública?**
 Confirme `STORE_API_KEY` nas variáveis de ambiente do n8n e que o backend tem esse mesmo valor
 configurado como `PUBLIC_API_KEY` (ver [api-endpoints.md](api-endpoints.md)).
+
+**O bot travou ou o cliente não recebeu resposta nenhuma quando o backend caiu?**
+Confira se os 3 nós de ferramenta (`Consultar Produtos`, `Consultar Produtos (Reservas)`,
+`Criar Reserva`) ainda têm `onError: continueRegularOutput` — sem isso a execução para no meio e
+nada é enviado pro WhatsApp. Se o `onError` estiver certo mas o cliente recebeu uma resposta
+estranha em vez da mensagem fixa de fallback, o LLM não seguiu a instrução — reforce a seção
+"REGRA CRÍTICA" do `.md` correspondente.
 
 **O agente está ignorando as instruções do `.md`?**
 Reduza a janela de contexto da Redis Chat Memory (`contextWindowLength`) — histórico muito longo

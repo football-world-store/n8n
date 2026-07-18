@@ -631,7 +631,7 @@
       "parameters": {
         "toolDescription": "Busca produtos no catalogo da Football World Store (GET /api/v1/public/products). Use antes de responder qualquer pergunta sobre disponibilidade, preco ou estoque. Parametros: search (nome/codigo/clube), category (CAMISA|SHORT|MEIAO|AGASALHO|ACESSORIO|CALCADO), size, clubOrBrand, stockStatus (AVAILABLE|LOW_STOCK|OUT_OF_STOCK). Todos opcionais.",
         "method": "GET",
-        "url": "={{ $env.STORE_API_BASE_URL }}/api/v1/public/products",
+        "url": "https://backend-bywc.onrender.com/api/v1/public/products",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -662,7 +662,7 @@
           "parameters": [
             {
               "name": "x-api-key",
-              "value": "={{ $env.STORE_API_KEY }}"
+              "value": "171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521"
             }
           ]
         },
@@ -791,7 +791,7 @@
       "parameters": {
         "toolDescription": "Busca produtos no catalogo da Football World Store (GET /api/v1/public/products). Use antes de responder qualquer pergunta sobre disponibilidade, preco ou estoque. Parametros: search (nome/codigo/clube), category (CAMISA|SHORT|MEIAO|AGASALHO|ACESSORIO|CALCADO), size, clubOrBrand, stockStatus (AVAILABLE|LOW_STOCK|OUT_OF_STOCK). Todos opcionais.",
         "method": "GET",
-        "url": "={{ $env.STORE_API_BASE_URL }}/api/v1/public/products",
+        "url": "https://backend-bywc.onrender.com/api/v1/public/products",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -822,7 +822,7 @@
           "parameters": [
             {
               "name": "x-api-key",
-              "value": "={{ $env.STORE_API_KEY }}"
+              "value": "171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521"
             }
           ]
         },
@@ -842,13 +842,13 @@
       "parameters": {
         "toolDescription": "Cria uma reserva pendente de 24h para um produto (POST /api/v1/public/reservations). So chame depois de confirmar disponibilidade com a ferramenta Consultar Produtos. Nao desconta estoque; a loja confirma manualmente.",
         "method": "POST",
-        "url": "={{ $env.STORE_API_BASE_URL }}/api/v1/public/reservations",
+        "url": "https://backend-bywc.onrender.com/api/v1/public/reservations",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "x-api-key",
-              "value": "={{ $env.STORE_API_KEY }}"
+              "value": "171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521"
             },
             {
               "name": "Content-Type",
@@ -1130,6 +1130,65 @@
       ],
       "id": "2ec771a1-41e3-42ca-b493-1980fd4c69ae",
       "name": "Send a text message - fws-financeiro",
+      "credentials": {
+        "wahaApi": {
+          "id": "PLACEHOLDER_WAHA_CRED_ID",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "39785e30-418e-4603-af55-71197a3ea60a",
+              "leftValue": "={{ (() => { try { const d = $('Consultar Produtos').item.json.data; return Array.isArray(d) && d.length === 1 && !!d[0].photoUrl; } catch (e) { return false; } })() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3260,
+        -240
+      ],
+      "id": "a14c2fe6-eaee-4851-8e5a-b1c8e53d1f36",
+      "name": "Tem 1 Produto com Foto? - fws-vendas"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Image",
+        "session": "={{ $('Dados').item.json.session }}",
+        "chatId": "={{ $('Dados').item.json.chatId }}",
+        "file": "={{ JSON.stringify({ mimetype: 'image/jpeg', filename: ($('Consultar Produtos').item.json.data[0].internalCode || 'produto') + '.jpg', url: $('Consultar Produtos').item.json.data[0].photoUrl }) }}",
+        "caption": "={{ $('Consultar Produtos').item.json.data[0].name + ' — ' + $('Consultar Produtos').item.json.data[0].clubOrBrand + '\\nTamanho: ' + $('Consultar Produtos').item.json.data[0].size + '\\nPreço: R$ ' + $('Consultar Produtos').item.json.data[0].salePrice }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        3480,
+        -240
+      ],
+      "id": "aa15b37b-5ffa-4bed-88f1-3ab4c4f4c0fb",
+      "name": "Enviar Foto do Produto - fws-vendas",
       "credentials": {
         "wahaApi": {
           "id": "PLACEHOLDER_WAHA_CRED_ID",
@@ -1550,6 +1609,29 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Send a text message - fws-vendas": {
+      "main": [
+        [
+          {
+            "node": "Tem 1 Produto com Foto? - fws-vendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem 1 Produto com Foto? - fws-vendas": {
+      "main": [
+        [
+          {
+            "node": "Enviar Foto do Produto - fws-vendas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     }
   },

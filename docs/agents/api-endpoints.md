@@ -60,11 +60,16 @@ Resposta (200):
       "stockStatus": "AVAILABLE"
     }
   ],
-  "total": 1
+  "total": 1,
+  "truncated": false
 }
 ```
 
 > `costPrice` nunca é retornado por este endpoint — o bot nunca tem acesso ao custo do produto.
+
+**Limite de resultados:** a busca retorna no máximo 20 produtos por chamada. Quando o resultado é
+cortado nesse limite, `truncated` vem `true` — o agente deve pedir pro cliente refinar a busca
+(time, categoria, tamanho) em vez de apresentar a lista como se fosse o catálogo inteiro.
 
 **`stockStatus` — como o agente deve reagir:**
 

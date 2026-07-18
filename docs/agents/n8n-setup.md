@@ -229,6 +229,33 @@ mensagem como lida) seguido de `Send a text message` (envia `agentResponse`/`out
 WhatsApp via WAHA). O branch `Humano` pula direto pro `Send a text message - Humano` com um texto
 fixo, sem gerar nada via LLM.
 
+### Nó 12 — WAHA: Foto do produto (só no branch Vendas)
+
+Depois de `Send a text message - fws-vendas`, tem mais dois nós:
+
+1. **`Tem 1 Produto com Foto? - fws-vendas`** (`n8n-nodes-base.if`) — lê o resultado da última
+   chamada da tool `Consultar Produtos` nessa execução (`$('Consultar Produtos').item.json.data`) e
+   só segue pro `true` quando veio **exatamente 1 produto** com `photoUrl` preenchido. A expressão
+   está envolta em `try/catch` porque, se o LLM não chamou `Consultar Produtos` nessa execução (ex:
+   mensagem de saudação), referenciar o node por nome quebraria a expressão — nesse caso o `catch`
+   devolve `false` e o fluxo simplesmente não manda foto.
+2. **`Enviar Foto do Produto - fws-vendas`** (`n8n-nodes-waha.WAHA`, resource `Chatting`, operation
+   `Send Image`) — manda o `photoUrl` do produto (vem do bucket S3 real, ver
+   [api-endpoints.md](api-endpoints.md)) como `file.url`, com legenda contendo nome, clube, tamanho
+   e preço.
+
+**Limitação intencional (v1):** só manda foto quando a busca retornou um produto só, exatamente pra
+evitar rajada de imagem numa lista grande — se o cliente pediu "camisas do Flamengo" e vieram 5
+resultados, só a mensagem de texto é enviada, sem foto. Se quiser cobrir também o caso de poucos
+resultados (2-3) mandando várias fotos, precisa de um node de loop (`Split In Batches`) — não
+implementado ainda.
+
+**Não testado ponta a ponta com WhatsApp real** — a operação `Send Image` e os nomes exatos dos
+campos (`session`, `chatId`, `file`, `caption`) foram conferidos direto no código-fonte do pacote
+`n8n-nodes-waha` (schema gerado a partir do `openapi.json` do WAHA), não por execução real do
+workflow. Testar mandando uma mensagem que bata em exatamente 1 produto com foto cadastrada (ver
+produto de teste `FWS-0002` no catálogo) antes de confiar no fluxo em produção.
+
 ---
 
 ## Ferramentas HTTP (Tool nodes)

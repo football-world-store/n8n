@@ -650,7 +650,7 @@
         "specifyHeaders": "json",
         "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
       },
-      "type": "n8n-nodes-base.httpRequest",
+      "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
       "position": [
         2140,
@@ -782,7 +782,7 @@
         "specifyHeaders": "json",
         "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
       },
-      "type": "n8n-nodes-base.httpRequest",
+      "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
       "position": [
         2140,
@@ -806,7 +806,7 @@
         "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}",
         "contentType": "json"
       },
-      "type": "n8n-nodes-base.httpRequest",
+      "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
       "position": [
         2140,

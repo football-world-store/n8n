@@ -650,8 +650,8 @@
         "specifyHeaders": "json",
         "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
       },
-      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
         2140,
         -400
@@ -782,8 +782,8 @@
         "specifyHeaders": "json",
         "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
       },
-      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
         2140,
         560
@@ -803,10 +803,11 @@
         "jsonBody": "={{ {\n  \"productId\": $fromAI('productId', 'id do produto retornado pela busca de produtos', 'string'),\n  \"quantity\": $fromAI('quantity', 'quantidade a reservar', 'number', 1),\n  \"customerName\": $fromAI('customerName', 'nome do cliente', 'string'),\n  \"customerWhatsapp\": $fromAI('customerWhatsapp', 'whatsapp do cliente, so digitos com DDD e pais', 'string'),\n  \"customerEmail\": $fromAI('customerEmail', 'email do cliente, opcional', 'string', ''),\n  \"notes\": $fromAI('notes', 'observacao livre, opcional', 'string', '')\n} }}",
         "options": {},
         "specifyHeaders": "json",
-        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\", \"Content-Type\": \"application/json\" } }}"
+        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}",
+        "contentType": "json"
       },
-      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
         2140,
         680

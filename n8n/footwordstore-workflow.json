@@ -226,7 +226,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Dados').first().json.chatId }}",
+        "sessionKey": "={{ $('Dados').first().json.chatId }}:central",
         "sessionTTL": 3600,
         "contextWindowLength": 10
       },
@@ -618,7 +618,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Dados').first().json.chatId }}",
+        "sessionKey": "={{ $('Dados').first().json.chatId }}:vendas",
         "sessionTTL": 3600,
         "contextWindowLength": 10
       },
@@ -750,7 +750,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Dados').first().json.chatId }}",
+        "sessionKey": "={{ $('Dados').first().json.chatId }}:reservas",
         "sessionTTL": 3600,
         "contextWindowLength": 10
       },
@@ -905,7 +905,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Dados').first().json.chatId }}",
+        "sessionKey": "={{ $('Dados').first().json.chatId }}:suporte",
         "sessionTTL": 3600,
         "contextWindowLength": 10
       },
@@ -1014,7 +1014,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Dados').first().json.chatId }}",
+        "sessionKey": "={{ $('Dados').first().json.chatId }}:financeiro",
         "sessionTTL": 3600,
         "contextWindowLength": 10
       },

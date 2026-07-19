@@ -237,7 +237,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const output = $input.item.json.output || '';\n\nconst match = output.match(/ROUTE:\\s*(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR)/i);\nconst route = match ? match[1].toUpperCase().trim() : 'CONTINUAR';\n\nconst agentResponse = output\n  .replace(/\\nROUTE:\\s*(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR).*/im, '')\n  .replace(/\\n(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR)\\s*$/im, '')\n  .trim();\n\nreturn [{ \n  json: { \n    ...$input.item.json,\n    route,\n    agentResponse\n  } \n}];\n"
+        "jsCode": "const output = $input.item.json.output || '';\n\nconst match = output.match(/ROUTE:\\s*(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR)/i);\nconst route = match ? match[1].toUpperCase().trim() : 'CONTINUAR';\n\nconst agentResponse = output\n  .replace(/\\nROUTE:\\s*(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR).*/im, '')\n  .replace(/\\n(VENDAS|RESERVAS|SUPORTE|FINANCEIRO|HUMANO|CONTINUAR)\\s*$/im, '')\n  .trim();\n\nreturn [{ \n  json: { \n    ...$input.item.json,\n    route,\n    agentResponse\n  },\n  pairedItem: 0\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

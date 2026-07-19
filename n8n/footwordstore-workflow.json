@@ -633,42 +633,14 @@
         "method": "GET",
         "url": "https://backend-bywc.onrender.com/api/v1/public/products",
         "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "search",
-              "value": "={{ $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', '') }}"
-            },
-            {
-              "name": "category",
-              "value": "={{ $fromAI('category', 'categoria do produto', 'string', '') }}"
-            },
-            {
-              "name": "size",
-              "value": "={{ $fromAI('size', 'tamanho procurado', 'string', '') }}"
-            },
-            {
-              "name": "clubOrBrand",
-              "value": "={{ $fromAI('clubOrBrand', 'clube ou marca', 'string', '') }}"
-            },
-            {
-              "name": "stockStatus",
-              "value": "={{ $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') }}"
-            }
-          ]
-        },
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "value": "171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521"
-            }
-          ]
-        },
-        "options": {}
+        "options": {},
+        "specifyQuery": "json",
+        "jsonQuery": "={{ { \"search\": $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', ''), \"category\": $fromAI('category', 'categoria do produto', 'string', ''), \"size\": $fromAI('size', 'tamanho procurado', 'string', ''), \"clubOrBrand\": $fromAI('clubOrBrand', 'clube ou marca', 'string', ''), \"stockStatus\": $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') } }}",
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
       },
-      "type": "n8n-nodes-base.httpRequestTool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
         2140,
@@ -793,42 +765,14 @@
         "method": "GET",
         "url": "https://backend-bywc.onrender.com/api/v1/public/products",
         "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "search",
-              "value": "={{ $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', '') }}"
-            },
-            {
-              "name": "category",
-              "value": "={{ $fromAI('category', 'categoria do produto', 'string', '') }}"
-            },
-            {
-              "name": "size",
-              "value": "={{ $fromAI('size', 'tamanho procurado', 'string', '') }}"
-            },
-            {
-              "name": "clubOrBrand",
-              "value": "={{ $fromAI('clubOrBrand', 'clube ou marca', 'string', '') }}"
-            },
-            {
-              "name": "stockStatus",
-              "value": "={{ $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') }}"
-            }
-          ]
-        },
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "value": "171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521"
-            }
-          ]
-        },
-        "options": {}
+        "options": {},
+        "specifyQuery": "json",
+        "jsonQuery": "={{ { \"search\": $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', ''), \"category\": $fromAI('category', 'categoria do produto', 'string', ''), \"size\": $fromAI('size', 'tamanho procurado', 'string', ''), \"clubOrBrand\": $fromAI('clubOrBrand', 'clube ou marca', 'string', ''), \"stockStatus\": $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') } }}",
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
       },
-      "type": "n8n-nodes-base.httpRequestTool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
         2140,
@@ -844,24 +788,14 @@
         "method": "POST",
         "url": "https://backend-bywc.onrender.com/api/v1/public/reservations",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "value": "171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  \"productId\": $fromAI('productId', 'id do produto retornado pela busca de produtos', 'string'),\n  \"quantity\": $fromAI('quantity', 'quantidade a reservar', 'number', 1),\n  \"customerName\": $fromAI('customerName', 'nome do cliente', 'string'),\n  \"customerWhatsapp\": $fromAI('customerWhatsapp', 'whatsapp do cliente, so digitos com DDD e pais', 'string'),\n  \"customerEmail\": $fromAI('customerEmail', 'email do cliente, opcional', 'string', ''),\n  \"notes\": $fromAI('notes', 'observacao livre, opcional', 'string', '')\n} }}",
-        "options": {}
+        "options": {},
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\", \"Content-Type\": \"application/json\" } }}"
       },
-      "type": "n8n-nodes-base.httpRequestTool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
         2140,

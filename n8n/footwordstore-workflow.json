@@ -646,9 +646,9 @@
         "sendHeaders": true,
         "options": {},
         "specifyQuery": "json",
-        "jsonQuery": "={{ { \"search\": $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', ''), \"category\": $fromAI('category', 'categoria do produto', 'string', ''), \"size\": $fromAI('size', 'tamanho procurado', 'string', ''), \"clubOrBrand\": $fromAI('clubOrBrand', 'clube ou marca', 'string', ''), \"stockStatus\": $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') } }}",
+        "jsonQuery": "={{ JSON.stringify({ \"search\": $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', ''), \"category\": $fromAI('category', 'categoria do produto', 'string', ''), \"size\": $fromAI('size', 'tamanho procurado', 'string', ''), \"clubOrBrand\": $fromAI('clubOrBrand', 'clube ou marca', 'string', ''), \"stockStatus\": $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') }) }}",
         "specifyHeaders": "json",
-        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
+        "jsonHeaders": "={{ JSON.stringify({ \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" }) }}"
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
@@ -778,9 +778,9 @@
         "sendHeaders": true,
         "options": {},
         "specifyQuery": "json",
-        "jsonQuery": "={{ { \"search\": $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', ''), \"category\": $fromAI('category', 'categoria do produto', 'string', ''), \"size\": $fromAI('size', 'tamanho procurado', 'string', ''), \"clubOrBrand\": $fromAI('clubOrBrand', 'clube ou marca', 'string', ''), \"stockStatus\": $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') } }}",
+        "jsonQuery": "={{ JSON.stringify({ \"search\": $fromAI('search', 'termo de busca: nome, codigo FWS-XXXX ou clube/marca', 'string', ''), \"category\": $fromAI('category', 'categoria do produto', 'string', ''), \"size\": $fromAI('size', 'tamanho procurado', 'string', ''), \"clubOrBrand\": $fromAI('clubOrBrand', 'clube ou marca', 'string', ''), \"stockStatus\": $fromAI('stockStatus', 'filtro de status de estoque', 'string', '') }) }}",
         "specifyHeaders": "json",
-        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}"
+        "jsonHeaders": "={{ JSON.stringify({ \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" }) }}"
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
@@ -800,10 +800,10 @@
         "sendHeaders": true,
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {\n  \"productId\": $fromAI('productId', 'id do produto retornado pela busca de produtos', 'string'),\n  \"quantity\": $fromAI('quantity', 'quantidade a reservar', 'number', 1),\n  \"customerName\": $fromAI('customerName', 'nome do cliente', 'string'),\n  \"customerWhatsapp\": $fromAI('customerWhatsapp', 'whatsapp do cliente, so digitos com DDD e pais', 'string'),\n  \"customerEmail\": $fromAI('customerEmail', 'email do cliente, opcional', 'string', ''),\n  \"notes\": $fromAI('notes', 'observacao livre, opcional', 'string', '')\n} }}",
+        "jsonBody": "={{ JSON.stringify({\n  \"productId\": $fromAI('productId', 'id do produto retornado pela busca de produtos', 'string'),\n  \"quantity\": $fromAI('quantity', 'quantidade a reservar', 'number', 1),\n  \"customerName\": $fromAI('customerName', 'nome do cliente', 'string'),\n  \"customerWhatsapp\": $fromAI('customerWhatsapp', 'whatsapp do cliente, so digitos com DDD e pais', 'string'),\n  \"customerEmail\": $fromAI('customerEmail', 'email do cliente, opcional', 'string', ''),\n  \"notes\": $fromAI('notes', 'observacao livre, opcional', 'string', '')\n}) }}",
         "options": {},
         "specifyHeaders": "json",
-        "jsonHeaders": "={{ { \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" } }}",
+        "jsonHeaders": "={{ JSON.stringify({ \"x-api-key\": \"171714379bbb8332548b3302ba51661c95cbb327a80a31ec28d077873e073521\" }) }}",
         "contentType": "json"
       },
       "type": "n8n-nodes-base.httpRequestTool",

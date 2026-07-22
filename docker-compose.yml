@@ -24,7 +24,7 @@
     waha:
       image: devlikeapro/waha:arm-2026.3.4
       environment:
-        WHATSAPP_HOOK_URL: http://host.docker.internal:5679/webhook/webhook
+        WHATSAPP_HOOK_URL: http://host.docker.internal:5679/webhook/fws/webhook
         WHATSAPP_DEFAULT_ENGINE: GOWS
         WHATSAPP_HOOK_EVENTS: message
         WAHA_NO_API_KEY: true
